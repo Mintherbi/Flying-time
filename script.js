@@ -186,6 +186,20 @@ class Boid {
         ctx.textBaseline = 'middle';
         ctx.fillText(this.char, this.x, this.y);
     }
+
+    // Get nearby boids for network visualization
+    getNearbyBoids(boids, maxDistance = 80) {
+        const nearby = [];
+        for (let other of boids) {
+            if (other !== this) {
+                const d = this.distance(other);
+                if (d < maxDistance) {
+                    nearby.push({ boid: other, distance: d });
+                }
+            }
+        }
+        return nearby;
+    }
 }
 
 // Canvas setup
@@ -229,6 +243,9 @@ function initializeBoids() {
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Draw network connections first (behind boids)
+    drawNetworkConnections();
+    
     // Update and draw boids
     for (let boid of boids) {
         boid.update(boids);
@@ -236,6 +253,42 @@ function animate() {
     }
     
     requestAnimationFrame(animate);
+}
+
+// Draw network connections between nearby boids
+function drawNetworkConnections() {
+    const maxDistance = 80;
+    const drawnConnections = new Set(); // To avoid drawing the same connection twice
+    
+    for (let i = 0; i < boids.length; i++) {
+        const boid = boids[i];
+        const nearby = boid.getNearbyBoids(boids, maxDistance);
+        
+        for (let { boid: other, distance } of nearby) {
+            // Create a unique key for this connection to avoid duplicates
+            const connectionKey = [boid, other].sort().join('-');
+            
+            if (!drawnConnections.has(connectionKey)) {
+                drawnConnections.add(connectionKey);
+                
+                // Calculate line thickness based on distance (closer = thicker)
+                const maxThickness = 3;
+                const minThickness = 0.5;
+                const thickness = maxThickness - ((distance / maxDistance) * (maxThickness - minThickness));
+                
+                // Calculate opacity based on distance (closer = more opaque)
+                const opacity = 1 - (distance / maxDistance);
+                
+                // Draw the connection line
+                ctx.strokeStyle = `rgba(0, 0, 0, ${opacity})`;
+                ctx.lineWidth = thickness;
+                ctx.beginPath();
+                ctx.moveTo(boid.x, boid.y);
+                ctx.lineTo(other.x, other.y);
+                ctx.stroke();
+            }
+        }
+    }
 }
 
 // Initialize and start

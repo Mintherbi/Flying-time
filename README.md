@@ -9,6 +9,7 @@ A creative web application that displays the current time with characters that m
   - **Separation**: Characters avoid getting too close to each other
   - **Alignment**: Characters tend to move in the same direction as nearby characters
   - **Cohesion**: Characters are drawn toward the center of nearby characters
+- **Network Visualization**: Lines connect nearby characters, with thickness and opacity indicating interaction strength
 - **Clean Design**: White background with black characters for a minimalist aesthetic
 - **Responsive**: Adapts to different screen sizes
 
@@ -37,6 +38,15 @@ The boids algorithm simulates flocking behavior with three main rules:
 3. **Cohesion**: Each boid steers toward the average position of nearby boids
 
 This creates natural-looking flocking behavior where the time characters move together while maintaining appropriate spacing.
+
+## Network Visualization
+
+The application includes a network visualization that shows the connections between nearby characters:
+
+- **Connection Lines**: Lines are drawn between characters that are within 80 pixels of each other
+- **Line Thickness**: Thicker lines indicate stronger interactions (closer characters)
+- **Line Opacity**: More opaque lines indicate closer characters
+- **Dynamic Updates**: The network connections update in real-time as characters move
 
 ## Technologies Used
 
