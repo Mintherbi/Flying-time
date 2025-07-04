@@ -257,25 +257,21 @@ function animate() {
 
 // Draw network connections between nearby boids
 function drawNetworkConnections() {
-    const maxDistance = 80;
-    const drawnConnections = new Set(); // To avoid drawing the same connection twice
-
+    const maxDistance = 500;
     // Set higher minimums for visibility
     const maxThickness = 3;
-    const minThickness = 1.2; // was 0.5
-    const minOpacity = 0.35;  // was 0 (now lines never fully disappear)
+    const minThickness = 1;
+    const minOpacity = 0.35;
 
+    // Draw every interaction (unique pairs)
     for (let i = 0; i < boids.length; i++) {
-        const boid = boids[i];
-        const nearby = boid.getNearbyBoids(boids, maxDistance);
-
-        for (let { boid: other, distance } of nearby) {
-            // Create a unique key for this connection to avoid duplicates
-            const connectionKey = [boid, other].sort().join('-');
-
-            if (!drawnConnections.has(connectionKey)) {
-                drawnConnections.add(connectionKey);
-
+        for (let j = i + 1; j < boids.length; j++) {
+            const boidA = boids[i];
+            const boidB = boids[j];
+            const dx = boidA.x - boidB.x;
+            const dy = boidA.y - boidB.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            if (distance < maxDistance) {
                 // Calculate line thickness based on distance (closer = thicker)
                 let thickness = maxThickness - ((distance / maxDistance) * (maxThickness - minThickness));
                 if (thickness < minThickness) thickness = minThickness;
@@ -288,8 +284,8 @@ function drawNetworkConnections() {
                 ctx.strokeStyle = `rgba(0, 0, 0, ${opacity})`;
                 ctx.lineWidth = thickness;
                 ctx.beginPath();
-                ctx.moveTo(boid.x, boid.y);
-                ctx.lineTo(other.x, other.y);
+                ctx.moveTo(boidA.x, boidA.y);
+                ctx.lineTo(boidB.x, boidB.y);
                 ctx.stroke();
             }
         }
