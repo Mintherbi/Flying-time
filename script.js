@@ -259,26 +259,31 @@ function animate() {
 function drawNetworkConnections() {
     const maxDistance = 80;
     const drawnConnections = new Set(); // To avoid drawing the same connection twice
-    
+
+    // Set higher minimums for visibility
+    const maxThickness = 3;
+    const minThickness = 1.2; // was 0.5
+    const minOpacity = 0.35;  // was 0 (now lines never fully disappear)
+
     for (let i = 0; i < boids.length; i++) {
         const boid = boids[i];
         const nearby = boid.getNearbyBoids(boids, maxDistance);
-        
+
         for (let { boid: other, distance } of nearby) {
             // Create a unique key for this connection to avoid duplicates
             const connectionKey = [boid, other].sort().join('-');
-            
+
             if (!drawnConnections.has(connectionKey)) {
                 drawnConnections.add(connectionKey);
-                
+
                 // Calculate line thickness based on distance (closer = thicker)
-                const maxThickness = 3;
-                const minThickness = 0.5;
-                const thickness = maxThickness - ((distance / maxDistance) * (maxThickness - minThickness));
-                
+                let thickness = maxThickness - ((distance / maxDistance) * (maxThickness - minThickness));
+                if (thickness < minThickness) thickness = minThickness;
+
                 // Calculate opacity based on distance (closer = more opaque)
-                const opacity = 1 - (distance / maxDistance);
-                
+                let opacity = 1 - (distance / maxDistance);
+                if (opacity < minOpacity) opacity = minOpacity;
+
                 // Draw the connection line
                 ctx.strokeStyle = `rgba(0, 0, 0, ${opacity})`;
                 ctx.lineWidth = thickness;
