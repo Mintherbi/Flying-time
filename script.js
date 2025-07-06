@@ -6,8 +6,8 @@ class Boid {
         this.vy = (Math.random() - 0.5) * 2;
         this.char = char;
         this.size = 16;
-        this.maxSpeed = 2;
-        this.maxForce = 0.1;
+        this.maxSpeed = 100; // Further increased for much faster movement
+        this.maxForce = 10000; // Further increased for quicker turning
         this.separationDistance = 30;
         this.alignmentDistance = 50;
         this.cohesionDistance = 50;
@@ -240,19 +240,36 @@ function initializeBoids() {
 }
 
 // Animation loop
-function animate() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
-    // Draw network connections first (behind boids)
-    drawNetworkConnections();
-    
-    // Update and draw boids
-    for (let boid of boids) {
-        boid.update(boids);
-        boid.draw(ctx);
+// For trail effect
+let lastResetTime = Date.now();
+const TRAIL_FRAMES = 20;
+// Calculate alpha so that after 20 frames, opacity is ~0.05 (almost gone): alpha = 1 - (0.05)^(1/20)
+const TRAIL_ALPHA = 1 - Math.pow(0.05, 1 / TRAIL_FRAMES); // ≈ 0.146
+
+// For 10fps animation
+const FPS = 10;
+const FRAME_INTERVAL = 1000 / FPS;
+let lastFrameTime = 0;
+
+function animate10fps(now) {
+    if (!lastFrameTime) lastFrameTime = now;
+    const elapsed = now - lastFrameTime;
+    if (elapsed >= FRAME_INTERVAL) {
+        lastFrameTime = now;
+        // Draw a semi-transparent white rectangle to fade previous frames
+        ctx.fillStyle = `rgba(255,255,255,${TRAIL_ALPHA})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw network connections first (behind boids)
+        drawNetworkConnections();
+
+        // Update and draw boids
+        for (let boid of boids) {
+            boid.update(boids);
+            boid.draw(ctx);
+        }
     }
-    
-    requestAnimationFrame(animate);
+    requestAnimationFrame(animate10fps);
 }
 
 // Draw network connections between nearby boids
@@ -295,11 +312,15 @@ function drawNetworkConnections() {
 // Initialize and start
 initializeBoids();
 updateTime();
-animate();
+requestAnimationFrame(animate10fps);
 
 // Update time every second
+
 setInterval(() => {
     updateTime();
     // Reinitialize boids with new time characters
     initializeBoids();
-}, 1000); 
+    // Fully clear the canvas to remove all trails
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    lastResetTime = Date.now();
+}, 1000);
